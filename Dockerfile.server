@@ -1,0 +1,33 @@
+# Use a smaller base image
+FROM ubuntu:22.04 AS builder
+
+# Install necessary packages for building
+RUN apt-get update && \
+    apt-get install -y gcc libc-dev make zlib1g-dev
+
+# Copy the source code into the container
+COPY server.c .
+
+# Compile the server code statically linked with musl libc
+RUN gcc -static -o server server.c -lz
+
+# Final stage to create a minimal runtime image
+FROM alpine:latest
+
+# Install necessary runtime libraries
+
+RUN apk --no-cache add zlib bash
+
+
+# Copy the compiled server executable from builder stage
+COPY --from=builder /server /server
+
+# Create necessary directories and files
+RUN mkdir -p /mnt/mta \
+    && mkdir -p /var/log \
+    && touch /var/log/mtacoin.log
+
+# Run the server program
+CMD ["/server"]
+
+

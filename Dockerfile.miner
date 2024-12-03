@@ -1,0 +1,32 @@
+# Use a smaller base image
+FROM ubuntu:22.04 AS builder
+
+# Install necessary packages for building
+RUN apt-get update && \
+    apt-get install -y gcc libc-dev make zlib1g-dev
+
+# Copy the source code into the container
+COPY miner.c .
+
+# Compile the miner code statically linked with musl libc
+RUN gcc -static -o miner miner.c -lz
+
+# Final stage to create a minimal runtime image
+FROM alpine:latest
+
+# Install necessary runtime libraries
+RUN apk --no-cache add zlib bash
+
+
+# Copy the compiled miner executable from builder stage
+COPY --from=builder /miner /miner
+
+# Create necessary directories and files
+RUN mkdir -p /mnt/mta \
+    && mkdir -p /var/log \
+    && touch /var/log/mtacoin.log
+
+# Run the miner program
+CMD ["/miner"]
+
+
