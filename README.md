@@ -37,5 +37,3 @@ Technologies Used
 C/C++: Core implementation of the blockchain simulation.
 Docker: For containerizing and managing the server and miner processes.
 Makefile: Automates setup and execution.
-
-
